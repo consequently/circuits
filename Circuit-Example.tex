@@ -1,0 +1,187 @@
+%%%
+%%% A minimal example for typesetting proof circuits.
+%%% 
+%%% Depedencies: tikz, together with the arrows and shapes libraries. 
+%%% Just install pgf, available at http://ctan.org/pkg/pgf
+%%%
+\documentclass{article}  
+
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{shapes}
+
+\def\negE{\ensuremath{\mathord\neg\textrm{\emph{E}}}}
+\def\negI{\ensuremath{\mathord\neg\textrm{\emph{I}}}}
+\def\landI{\ensuremath{\mathord\land\textrm{\emph{I}}}}
+\def\landE{\ensuremath{\mathord\land\textrm{\emph{E}}}}
+\def\lorI{\ensuremath{\mathord\lor\textrm{\emph{I}}}}
+\def\lorE{\ensuremath{\mathord\lor\textrm{\emph{E}}}}
+
+%%% tikz: arrow definitions for active ports
+%%%
+\makeatletter
+\pgfarrowsdeclare{@}{@}
+{
+  \@tempdima=0.4pt%
+  \advance\@tempdima by.2\pgflinewidth%
+  \@tempdimb=5.5\@tempdima\advance\@tempdimb by\pgflinewidth
+  \pgfarrowsleftextend{-\@tempdimb}
+  \@tempdimb=1.5\@tempdima\advance\@tempdimb by.5\pgflinewidth
+  \pgfarrowsrightextend{\@tempdimb}
+}
+{
+  \@tempdima=0.4pt%
+  \advance\@tempdima by.2\pgflinewidth%
+  \pgfsetdash{}{0pt}
+  \pgfpathcircle{\pgfpoint{-3\@tempdima}{0pt}}{2.5\@tempdima}
+  \pgfusepathqfillstroke
+}
+\pgfarrowsdeclarecombine{@<}{>@}{stealth'}{stealth'}{@}{@}
+\makeatother
+%%%
+\def\switchat#1{\draw[fill=white] (#1) circle (1.5pt);}
+%%%
+\tikzstyle{circuit}=[semithick,auto,node distance=2cm,bend angle=25]
+%%% --- node styles
+\tikzstyle{conn}=[draw,ellipse,fill=grayblue,anchor=base,inner sep=3pt]
+\tikzstyle{proof}=[draw,rectangle,fill=grayred,anchor=base,inner sep=10pt]
+\tikzstyle{anch}=[inner sep=2pt,coordinate]
+\tikzstyle{wedgeleft}=[draw,isosceles triangle,isosceles triangle apex angle=60,inner sep=2pt,shape border rotate=180,fill=graygreen]
+\tikzstyle{wedgeup}=[draw,isosceles triangle,isosceles triangle apex angle=60,inner sep=2pt,shape border rotate=90,fill=graygreen]
+\tikzstyle{wedgedown}=[draw,isosceles triangle,isosceles triangle apex angle=60,inner sep=2pt,shape border rotate=270,fill=graygreen]
+\tikzstyle{wedgeright}=[draw,isosceles triangle,isosceles triangle apex angle=60,inner sep=2pt,fill=graygreen]
+\tikzstyle{switched}=[rectangle,inner sep=4pt,fill=grayred]
+\tikzstyle{stru}=[draw,rectangle,fill=graygreen,anchor=base,inner sep=4pt]
+%%% --- arrow styles
+\tikzstyle{intro}=[>=stealth',@->,shorten <=-2.75pt,shorten >=0.33pt]
+\tikzstyle{elim}=[>=stealth',->@,shorten >=-2.75pt]
+\tikzstyle{both}=[>=stealth',@->@,shorten >=-2.75pt,shorten <=-2.75pt]
+\tikzstyle{none}=[>=stealth',->,shorten >=0.33pt]
+\tikzstyle{swit}=[dotted,thick,color=dgrayred]
+%%% --- edge label styles (small formulas)
+\tikzstyle{every edge}=[font=\footnotesize,draw]
+%%%
+\tikzstyle{fence}=[color=dgraygreen,thick,rounded corners=5pt]
+\colorlet{grayshade}{black!1}
+\colorlet{graygreen}{green!6!grayshade}
+\colorlet{grayblue}{blue!6!grayshade}
+\colorlet{dgrayshade}{black!66}
+\colorlet{dgraygreen}{green!25!dgrayshade}
+\colorlet{grayred}{red!6!grayshade}
+\colorlet{dgrayred}{red!25!dgrayshade}
+
+
+\begin{document}
+
+\section{One Example Circuit}
+\[
+\begin{tikzpicture}[circuit,baseline=(4.base)]
+\node[anch](1) {};                                                   
+\node[anch](2) [right of = 1, xshift=2cm] {};                        
+\node[conn](3) [below of = 1,yshift=0.5cm, xshift=1cm] {\lorE};         
+\node[conn](4) [right of = 3, yshift=-1cm] {\negE};                  
+\node[conn](5) [below of = 4,yshift=0.75cm] {\negI};                  
+\node[conn](6) [left of = 5,yshift=-1cm] {\landI};  
+\node[anch](7) [below of = 6,xshift=-1cm,yshift=0.5cm]  {}; 
+\node[anch](8) [below of = 5,xshift=1cm,yshift=-0.5cm] {};       
+\path (1) edge[bend right=12,elim] node[swap]{$p\lor q$} (3);        
+\path (2) edge[bend left=12,elim] node{$\neg p$} (4);                
+\path (3) edge[bend left=12,none] node{$p$} (4);                     
+\path (3) edge[bend right=24,none] node[swap]{$q$} (6);              
+\path (6) edge[bend right=12,intro] node[swap]{$q\land\neg r$} (7);  
+\path (5) edge[bend left=12,intro] node{$\neg r$} (6);               
+\path (5) edge[bend left=12,none] node{$r$} (8);                     
+\end{tikzpicture}
+\qquad
+p\lor q,\neg p\vdash q\land\neg r,r
+\]
+\section{And Three More}
+\[
+	\begin{tikzpicture}[circuit,baseline=(1)]
+	\node[anch] (1){};
+	\node[conn] (2)[right of = 1] {\lorE};
+	\node[wedgeright] (3)[right of = 2] {};
+	\node[wedgeleft] (4)[right of = 3] {};
+	\node[conn] (5)[right of = 4] {\landI};
+	\node[anch] (6)[right of = 5]{};
+	\path (1) edge[elim] node{$p\lor p$} (2);
+	\path (2.45) edge[bend left,none] node{$p$} (3.left corner);
+	\path (2.-45) edge[bend right,none] node[swap]{$p$} (3.right corner);
+	\path (3) edge[both] node{$p$} (4);
+	\path (4.right corner) edge[bend left,none] node{$p$} (5.135); 
+	\path (4.left corner) edge[bend right,none] node[swap]{$p$} (5.-135);
+	\path (5) edge[intro] node{$p\land p$} (6);
+	\switchat{3.left corner};
+	\switchat{3.right corner};
+	\switchat{4.right corner};
+	\switchat{4.left corner};
+	\node (1)[yshift=-5mm,right,fill=red!33!white] {\tiny{\emph{original}}};
+	\end{tikzpicture}
+\]
+
+\medskip
+
+\[
+\begin{tikzpicture}[circuit,baseline=(1)]
+\node[anch] (1){};
+\node[wedgeleft] (1a)[right of = 1] {};
+\node[conn] (2a)[right of = 1a,yshift=6.5mm] {\lorE};
+\node[wedgeright] (3a)[right of = 2a] {};
+\node[conn] (2b)[right of = 1a,yshift=-6.5mm] {\lorE};
+\node[wedgeright] (3b)[right of = 2b] {};
+\node[conn] (5)[right of = 3b,yshift=6.5mm] {\landI};
+\node[anch] (6)[right of = 5]{};
+%%
+\path (1) edge[elim] node{$p\lor p$} (1a);
+\path (1a.right corner) edge[elim,bend left] node{$p\lor p$} (2a.west); 
+\path (1a.left corner) edge[elim,bend right] node[swap]{$p\lor p$} (2b.west);
+\path (2a.45) edge[bend left,none]   (3a.left corner);
+\path (2a.-45) edge[bend right,none] node{$p$}  (3a.right corner);
+\path (2b.45) edge[bend left,none]   (3b.left corner);
+\path (2b.-45) edge[bend right,none] node{$p$}  (3b.right corner);
+\path (3a.east) edge[intro,bend left] node{$p$} (5.135); 
+\path (3b.east) edge[intro,bend right] node[swap]{$p$} (5.-135);
+\path (5) edge[intro] node{$p\land p$} (6);
+\switchat{3a.left corner};
+\switchat{3a.right corner};
+\switchat{3b.left corner};
+\switchat{3b.right corner};
+\switchat{1a.right corner};
+\switchat{1a.left corner};
+\node (1)[yshift=-6mm,right,fill=green!33!white] {\tiny{\emph{left reduction}}};
+\end{tikzpicture}
+\]
+
+\medskip
+
+\[
+\begin{tikzpicture}[circuit,baseline=(1)]
+\node[anch] (1){};
+\node[conn] (1a)[right of = 1] {\lorE};
+\node[wedgeleft] (2a)[right of = 1a,yshift=6.5mm] {};
+\node[conn] (3a)[right of = 2a] {\landI};
+\node[wedgeleft] (2b)[right of = 1a,yshift=-6.5mm] {};
+\node[conn] (3b)[right of = 2b] {\landI};
+\node[wedgeright] (5)[right of = 3b,yshift=6.5mm] {};
+\node[anch] (6)[right of = 5]{};
+%%
+\path (1) edge[elim] node{$p\lor p$} (1a);
+\path (1a.north east) edge[elim,bend left] node{$p$} (2a.west); 
+\path (1a.south east) edge[elim,bend right] node[swap]{$p$} (2b.west);
+\path (2a.right corner) edge[bend left,none]  (3a.north west);
+\path (2a.left corner) edge[bend right,none] node{$p$}  (3a.south west);
+\path (2b.right corner) edge[bend left,none]   (3b.north west);
+\path (2b.left corner) edge[bend right,none] node{$p$}  (3b.south west);
+\path (3a.east) edge[intro,bend left] node{$p\land p$} (5.left corner); 
+\path (3b.east) edge[intro,bend right] node[swap]{$p\land p$} (5.right corner);
+\path (5) edge[intro] node{$p\land p$} (6);
+\switchat{2a.left corner};
+\switchat{2a.right corner};
+\switchat{2b.left corner};
+\switchat{2b.right corner};
+\switchat{5.left corner};
+\switchat{5.right corner};
+\node (1)[yshift=-6mm,right,fill=green!33!white] {\tiny{\emph{right reduction}}};
+\end{tikzpicture}
+\]
+\end{document}
